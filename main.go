@@ -50,7 +50,7 @@ func loop(index int, config *Config) {
 		} else {
 			componentStatuses[index] = true
 			if metricClient != nil {
-				metricClient.AddMetric(timestamp, duration)
+				metricClient.AddMetric(timestamp, duration*1000)
 			}
 		}
 
