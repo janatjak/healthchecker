@@ -10,13 +10,14 @@ type Checker struct {
 	url    string
 }
 
-func (c *Checker) Check() (bool, error) {
+func (c *Checker) Check() (bool, float64, error) {
+	start := time.Now()
 	response, err := c.client.Get(c.url)
 	if err != nil {
-		return false, err
+		return false, 0, err
 	}
 
-	return response.StatusCode == 200, nil
+	return response.StatusCode == 200, time.Since(start).Seconds(), nil
 }
 
 func (c *Checker) Url() string {

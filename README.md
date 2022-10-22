@@ -22,7 +22,8 @@ services:
                     "components": [
                         {
                             "id": "<component id>",
-                            "url": "<url>"
+                            "url": "<url>",
+                            "metricId": "<metric id>" // optional
                         }
                     ]
                 }

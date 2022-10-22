@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/janatjak/healthchecker/checker"
+	"github.com/janatjak/healthchecker/metric_client"
 	"github.com/janatjak/healthchecker/update_status_client"
 	"os"
 	"sync"
@@ -11,8 +12,9 @@ import (
 )
 
 type Component struct {
-	Id  string `json:"id"`
-	Url string `json:"url"`
+	Id       string `json:"id"`
+	Url      string `json:"url"`
+	MetricId string `json:"metricId"`
 }
 
 type Config struct {
@@ -32,15 +34,24 @@ func loop(index int, config *Config) {
 	updateStatusClient := update_status_client.New(config.APIKey, config.PageID, component.Id)
 	checkerClient := checker.New(component.Url, time.Second*10)
 
+	var metricClient *metric_client.MetricClient
+	if component.MetricId != "" {
+		metricClient = metric_client.New(config.APIKey, config.PageID, component.MetricId)
+	}
+
 	for {
 		println("CHECK " + checkerClient.Url())
 		status := update_status_client.Operational
-		ok, _ := checkerClient.Check()
+		timestamp := time.Now().Unix()
+		ok, duration, _ := checkerClient.Check()
 		if !ok {
 			status = update_status_client.MajorOutage
 			componentStatuses[index] = false
 		} else {
 			componentStatuses[index] = true
+			if metricClient != nil {
+				metricClient.AddMetric(timestamp, duration)
+			}
 		}
 
 		updateStatusClient.UpdateStatus(status)
